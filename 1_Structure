@@ -1,0 +1,50 @@
+project_root/
+│
+├── controller/
+│   ├── main_controller.py
+│   ├── agents/
+│   │   ├── triage_agent.py
+│   │   ├── investigation_agent.py
+│   │   ├── reporter_agent.py
+│   │   ├── enrichment_agent.py
+│   │   ├── data_fetcher_agent.py
+│   │   └── __init__.py
+│   │
+│   ├── utils/
+│   │   ├── logger.py
+│   │   ├── file_utils.py
+│   │   ├── field_filter.py
+│   │   ├── summarizer.py
+│   │   ├── malicious_matcher.py
+│   │   └── __init__.py
+│
+├── configs/
+│   ├── controller_config.json
+│   ├── fieldmapping.json
+│   ├── logsources.json
+│   ├── output_schema.json
+│
+├── behaviors/
+│   ├── Endpoint_telemetry.json
+│   ├── Firewall_behaviour.json
+│   ├── Proxy_behaviour.json
+│   ├── DNS_behaviour.json
+│   ├── AD_behaviour.json
+│   ├── Cloud_behaviour.json
+│   └── README.md
+│
+├── data/
+│   ├── incoming_alerts/
+│   ├── evidence_store/
+│   ├── case_reports/
+│
+├── debug_logs/
+│   ├── controller_errors.log
+│   ├── investigation_steps.log
+│
+├── llm_transactions/
+│   ├── case_001/
+│
+└── tests/
+    ├── sample_alerts/
+    ├── mock_logs/
