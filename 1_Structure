@@ -1,50 +1,120 @@
-project_root/
+controller_project/                           # 🌐 Root of the Autonomous Investigation Framework
 │
-├── controller/
-│   ├── main_controller.py
-│   ├── agents/
-│   │   ├── triage_agent.py
-│   │   ├── investigation_agent.py
-│   │   ├── reporter_agent.py
-│   │   ├── enrichment_agent.py
-│   │   ├── data_fetcher_agent.py
-│   │   └── __init__.py
+├── controller/                               # 🚀 Main orchestration logic and LLM coordination
 │   │
-│   ├── utils/
-│   │   ├── logger.py
-│   │   ├── file_utils.py
-│   │   ├── field_filter.py
-│   │   ├── summarizer.py
-│   │   ├── malicious_matcher.py
-│   │   └── __init__.py
+│   ├── main_controller.py                    # 🧠 Central orchestrator; manages recursive investigation loop,
+│   │                                         # calls all agents, logs transactions, and writes reports.
+│   │
+│   ├── agents/                               # 🤖 Specialized functional + LLM-driven agents
+│   │   ├── triage_agent.py                   # 🩺 LLM-based triage — extracts entities from alerts,
+│   │   │                                     # generates initial hypotheses and data requests.
+│   │   ├── investigation_agent.py            # 🔁 LLM reasoning engine — analyzes evidence, updates hypotheses,
+│   │   │                                     # and decides if further data is needed or if verdict can be made.
+│   │   ├── enrichment_agent.py               # 🌍 Entity enrichment — looks up IPs/domains/users/file hashes
+│   │   │                                     # against local intel or external reputation sources.
+│   │   ├── data_fetcher_agent.py             # 📡 Collects logs and telemetry from configured sources (mocked here).
+│   │   │                                     # Replace with connectors to SIEM, EDR, firewall, DNS, or AD APIs.
+│   │   ├── reporter_agent.py                 # 🧾 Generates structured final report with classification,
+│   │   │                                     # reasoning, timeline, and confidence level.
+│   │   └── __init__.py                       # Marks directory as a Python package.
+│   │
+│   ├── utils/                                # 🧰 Utility and helper modules used by controller and agents
+│   │   ├── file_utils.py                     # 📁 Save/load JSON files, ensure directories exist.
+│   │   ├── logger.py                         # 🪵 Centralized logging utility; writes to debug_logs.
+│   │   ├── field_filter.py                   # 🧹 Filters logs to retain only relevant fields based on fieldmapping.json.
+│   │   ├── summarizer.py                     # 🧠 Converts multiple raw logs into concise semantic summaries.
+│   │   ├── malicious_matcher.py              # ⚔️ Scans parsed logs for known suspicious behaviors using
+│   │   │                                     # rules from /behaviors/ (single, aggregation, or sequence types).
+│   │   ├── data_reduction_pipeline.py        # 🧮 NEW: Reduces large log volumes before LLM analysis.
+│   │   │                                     # - Filters fields
+│   │   │                                     # - Matches behaviors
+│   │   │                                     # - Aggregates repetitive logs
+│   │   │                                     # - Generates compact summaries including critical fields
+│   │   │                                     # - Outputs top-N summaries for LLM investigation loop.
+│   │   └── __init__.py                       # Marks directory as a Python package.
+│   │
+│   └── __init__.py                           # Marks /controller as a package root.
 │
-├── configs/
-│   ├── controller_config.json
-│   ├── fieldmapping.json
-│   ├── logsources.json
-│   ├── output_schema.json
 │
-├── behaviors/
-│   ├── Endpoint_telemetry.json
-│   ├── Firewall_behaviour.json
-│   ├── Proxy_behaviour.json
-│   ├── DNS_behaviour.json
-│   ├── AD_behaviour.json
-│   ├── Cloud_behaviour.json
-│   └── README.md
+├── configs/                                  # ⚙️ Configuration files for controller, LLM schema, and sources
+│   ├── controller_config.json                # 🎛️ Global config — thresholds, timeouts, and max iterations.
+│   ├── fieldmapping.json                     # 🧩 Defines allowed field names for each log source
+│   │                                         # (used by field_filter.py and summarizer).
+│   ├── logsources.json                       # 📚 Lists supported log sources and vendors with descriptions.
+│   ├── output_schema.json                    # 🧾 Defines expected structure of LLM final report outputs.
+│   └── prompt_template.json                  # 💬 (Optional) Store system + user prompt templates for agents.
 │
-├── data/
-│   ├── incoming_alerts/
-│   ├── evidence_store/
-│   ├── case_reports/
 │
-├── debug_logs/
-│   ├── controller_errors.log
-│   ├── investigation_steps.log
+├── behaviors/                                # 🔍 Behavior detection rule library
+│   ├── endpoint_single.json                  # ⚡ Detects individual suspicious endpoint events
+│   │                                         # (e.g., encoded PowerShell, Mimikatz, unsigned binaries).
+│   ├── endpoint_aggregation.json             # 📊 Detects aggregated suspicious patterns (e.g., high unsigned executions).
+│   ├── endpoint_sequence.json                # ⛓️ Detects multi-step sequences (e.g., registry change → PowerShell → injection).
+│   ├── firewall_behaviour.json               # 🌐 Network-based detections (exfiltration, C2, port scanning).
+│   ├── dns_behaviour.json                    # 🧭 Detects suspicious DNS patterns (DGAs, tunneling, etc.).
+│   ├── ad_behaviour.json                     # 🔑 Detects suspicious authentication and privilege escalation attempts.
+│   └── README.md                             # 📘 Describes the behavior rule schema and authoring guidelines.
 │
-├── llm_transactions/
-│   ├── case_001/
 │
-└── tests/
-    ├── sample_alerts/
-    ├── mock_logs/
+├── data/                                     # 🧾 Runtime data storage and mock datasets
+│   │
+│   ├── incoming_alerts/                      # 🚨 Alerts ingested into the investigation loop.
+│   │   ├── alert_data_exfil.json             # Example alert: large outbound data transfer.
+│   │   ├── alert_powershell.json             # Example alert: encoded PowerShell execution.
+│   │
+│   ├── mock_logs/                            # 🧠 Mock data sources (replace with real SIEM/EDR data feeds)
+│   │   ├── endpoint_logs.csv                 # Endpoint process/registry logs (aligned with fieldmapping.json)
+│   │   ├── firewall_logs.csv                 # Network flow logs for exfiltration scenarios.
+│   │   ├── dns_logs.csv                      # DNS logs showing benign & suspicious resolutions.
+│   │   ├── ad_logs.csv                       # Active Directory login events (used for lateral movement analysis).
+│   │
+│   ├── evidence_store/                       # 📂 Stores normalized evidence collected per case.
+│   │   └── CASE-XXXXXX/                      # Each case folder holds evidence JSONs (e.g., EV-xxxx.json).
+│   │
+│   ├── case_reports/                         # 🧾 Investigation reports generated per case.
+│   │   └── CASE-XXXXXX/                      # Each case folder includes:
+│   │       ├── final_report.json             # Machine-readable structured report.
+│   │       ├── final_report.txt              # Analyst-readable summary.
+│   │       ├── report_metadata.json          # Metadata (case ID, timestamps, final reason).
+│   │
+│   └── test_data/                            # 🧪 Optional folder for regression or stress test datasets.
+│
+│
+├── debug_logs/                               # 🪵 Logs controller runtime behavior and errors.
+│   ├── controller_errors.log                 # Error trace log for controller exceptions.
+│   └── investigation_steps.log               # (Optional) Detailed per-iteration debugging output.
+│
+│
+├── llm_transactions/                         # 💬 Full trace of all LLM interactions (auditable)
+│   └── CASE-XXXXXX/                          # Per-case folder containing:
+│       ├── triage_iter1_request.json         # Input prompt sent to triage agent.
+│       ├── triage_iter1_response.json        # LLM’s structured JSON output.
+│       ├── investigation_iterX_request.json  # Input for investigation agent.
+│       ├── investigation_iterX_response.json # Investigation agent output.
+│       ├── enrichment_<timestamp>.json       # Entity enrichment logs.
+│       └── reporter_request.json             # Final reporting I/O for audit trail.
+│
+│
+├── tests/                                    # 🧪 Unit and integration testing
+│   ├── sample_alerts/                        # Sample alert scenarios for quick verification.
+│   ├── mock_behaviors/                       # Example behavior JSONs for offline tests.
+│   └── run_tests.py                          # Runs automated validation of investigation pipeline.
+│
+│
+├── README_updates.txt                        # 📝 Guidance on environment setup (.env), config tuning, and behavior updates.
+├── .env                                      # 🔐 Environment file for Azure/OpenAI keys and LLM settings (create manually).
+├── requirements.txt                          # 📦 Python dependencies (e.g., python-dotenv, openai, pandas, requests).
+└── README.md                                 # 📘 Project documentation and user guide.
+
+
+🔄 Investigation Flow Summary
+==================================================
+1️⃣ Alert Ingestion     → alert_data_exfil.json loaded
+2️⃣ Triage Agent         → Extracts entities + initial hypotheses
+3️⃣ Data Fetcher         → Retrieves relevant logs
+4️⃣ Data Reduction       → Filters + aggregates + summarizes large datasets
+5️⃣ Enrichment Agent     → Adds reputation & contextual info
+6️⃣ Investigation Agent  → Refines hypotheses, classifies threat
+7️⃣ Reporter Agent       → Generates structured report
+8️⃣ Controller Output    → final_report.json + metadata + audit trail
+
